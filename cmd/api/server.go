@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 )
 
@@ -17,9 +22,40 @@ func (app *application) serve() error {
 		WriteTimeout: 30 * time.Second,
 	}
 
+	shutdownError := make(chan error)
+
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		s := <-quit
+
+		app.logger.LogInfo("shutting down server", map[string]string{
+			"signal": s.String(),
+		})
+
+		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+		defer cancel()
+
+		shutdownError <- server.Shutdown(ctx)
+	}()
+
 	app.logger.LogInfo("starting API server", map[string]string{
 		"address":     server.Addr,
 		"environment": app.config.env,
 	})
-	return server.ListenAndServe()
+	err := server.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
+	err = <-shutdownError
+	if err != nil {
+		return err
+	}
+
+	app.logger.LogInfo("stopped server", map[string]string{
+		"address": server.Addr,
+	})
+
+	return nil
 }

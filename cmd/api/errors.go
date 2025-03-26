@@ -1,14 +1,16 @@
 package main
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/nadiannis/claris/internal/types"
 )
 
 func (app *application) logError(r *http.Request, err error) {
-	log.Printf("err: %v, request_method: %s, request_url: %s", err, r.Method, r.URL.String())
+	app.logger.LogError(err, map[string]string{
+		"request_method": r.Method,
+		"request_url":    r.URL.String(),
+	})
 }
 
 func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, status int, message any) {

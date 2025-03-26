@@ -2,7 +2,9 @@ package main
 
 import (
 	"flag"
-	"log"
+	"os"
+
+	"github.com/nadiannis/claris/internal/log"
 )
 
 type config struct {
@@ -12,6 +14,7 @@ type config struct {
 
 type application struct {
 	config config
+	logger *log.Logger
 }
 
 func main() {
@@ -24,10 +27,11 @@ func main() {
 
 	app := &application{
 		config: cfg,
+		logger: log.New(os.Stdout, log.LevelInfo),
 	}
 
 	err := app.serve()
 	if err != nil {
-		log.Fatal(err)
+		app.logger.LogFatal(err, nil)
 	}
 }

@@ -90,3 +90,7 @@ func (l *Logger) LogFatal(err error, properties map[string]string) {
 	l.log(LevelFatal, err.Error(), properties)
 	os.Exit(1)
 }
+
+func (l *Logger) Write(message []byte) (int, error) {
+	return l.log(LevelError, string(message), nil)
+}

@@ -16,3 +16,17 @@ build:
 .PHONY: start
 start: build
 	./bin/api
+
+## audit: tidy dependencies, format code, vet code, & test code
+.PHONY: audit
+audit:
+	@echo 'Tidying & verifying module dependencies...'
+	go mod tidy
+	go mod verify
+	@echo 'Formatting code...'
+	go fmt ./...
+	@echo 'Vetting code...'
+	go vet ./...
+	staticcheck ./...
+	@echo 'Running tests...'
+	go test -race -vet=off ./...

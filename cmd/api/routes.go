@@ -9,5 +9,5 @@ func (app *application) routes() http.Handler {
 
 	router.HandleFunc("GET /api/v1/healthcheck", app.healthcheckHandler)
 
-	return router
+	return app.requestLogger(router)
 }
